@@ -5,26 +5,26 @@ db.exec(`
   -- Table for the students and admins
   CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre_completo TEXT NOT NULL,
+      full_name TEXT NOT NULL,
       pin TEXT NOT NULL,
-      rol TEXT DEFAULT 'Servicio'
+      role TEXT DEFAULT 'Servicio'
   );
 
   -- Table for the stock 
   CREATE TABLE IF NOT EXISTS items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      descripcion TEXT NOT NULL,
-      serie_modelo TEXT,
-      cantidad INTEGER DEFAULT 1,
-      notas_fijas TEXT
+      description TEXT NOT NULL,
+      series_model TEXT,
+      quantity INTEGER DEFAULT 1,
+      fixed_notes TEXT
   );
 
   -- Table that records each time someone does a checklist
   CREATE TABLE IF NOT EXISTS reports (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-      id_usuario INTEGER,
-      FOREIGN KEY(id_usuario) REFERENCES users(id)
+      date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      id_user INTEGER,
+      FOREIGN KEY(id_user) REFERENCES users(id)
   );
 
   -- Table that saves the Yes-No and Comments of each equipment in a specific report

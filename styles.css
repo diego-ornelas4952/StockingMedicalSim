@@ -37,3 +37,107 @@ header {
     text-align: center;
     font-weight: bold;
 }
+
+.header-text h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.header-text p {
+    margin: 0;
+    color: var(--azul-claro);
+    font-size: 0.9rem;
+}
+
+main {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.info-turno {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 5px solid var(--azul-medio);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+th {
+    background-color: var(--azul-medio);
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--fondo-crema);
+    vertical-align: middle;
+}
+
+tr:hover {
+    background-color: #f0f4f8;
+}
+
+/* Estilos para los inputs interactivos */
+.checkbox-custom {
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    accent-color: var(--azul-oscuro);
+}
+
+.input-comentario {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--azul-claro);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.input-comentario:focus {
+    outline: none;
+    border-color: var(--azul-oscuro);
+    box-shadow: 0 0 5px var(--azul-claro);
+}
+
+.btn-exportar {
+    background-color: var(--azul-oscuro);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    float: right;
+    margin-top: 20px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-exportar:hover {
+    background-color: var(--azul-medio);
+}
+
+.tag-info {
+    background-color: var(--azul-claro);
+    color: var(--azul-oscuro);
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
