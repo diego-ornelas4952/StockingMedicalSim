@@ -1,0 +1,39 @@
+:root {
+    --azul-oscuro: #355872;
+    --azul-medio: #7AAACE;
+    --azul-claro: #9CD5FF;
+    --fondo-crema: #F7F8F0;
+}
+
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--fondo-crema);
+    color: #333;
+}
+
+header {
+    background-color: var(--azul-oscuro);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.logo-udg {
+    width: 60px;
+    height: 70px;
+    background-color: white;
+    /* Aquí irá la imagen real */
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--azul-oscuro);
+    font-size: 10px;
+    text-align: center;
+    font-weight: bold;
+}
