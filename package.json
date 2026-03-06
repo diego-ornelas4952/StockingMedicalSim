@@ -1,0 +1,26 @@
+{
+  "name": "stockingmedicalsim",
+  "version": "1.0.0",
+  "description": "Stocking system for the Simulators Laboratory in CUAltos (it's for my social service)",
+  "main": "insert-db.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diego-ornelas4952/StockingMedicalSim.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/diego-ornelas4952/StockingMedicalSim/issues"
+  },
+  "homepage": "https://github.com/diego-ornelas4952/StockingMedicalSim#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
