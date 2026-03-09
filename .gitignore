@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Base de datos local
+database.db
+
+# Build output
+dist/
+out/
+
+# Electron build
+release/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
