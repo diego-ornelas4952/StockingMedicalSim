@@ -12,9 +12,11 @@ function App() {
   const [loginForm, setLoginForm] = useState({ codigo: '', pin: '' });
   const [loginError, setLoginError] = useState('');
 
-  // Estados Admin
+  // Estados Admin y Reportes
   const [usersList, setUsersList] = useState([]);
   const [reportsList, setReportsList] = useState([]);
+  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [reportDetails, setReportDetails] = useState([]);
   const [newUser, setNewUser] = useState({ id: '', full_name: '', pin: '', role: 'Servicio' });
   const [newItem, setNewItem] = useState({ description: '', series_model: '', quantity: 1, fixed_notes: '' });
 
@@ -26,11 +28,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (user && user.role === 'Admin') {
-      if (activeView === 'admin_usuarios') {
+    if (user) {
+      if (activeView === 'admin_usuarios' && user.role === 'Admin') {
         fetch('http://localhost:3000/api/users').then(r => r.json()).then(setUsersList);
       } else if (activeView === 'reportes') {
-        fetch('http://localhost:3000/api/reports-full').then(r => r.json()).then(setReportsList);
+        setSelectedReportId(null);
+        if (user.role === 'Admin') {
+          fetch('http://localhost:3000/api/reports-full').then(r => r.json()).then(setReportsList);
+        } else {
+          fetch(`http://localhost:3000/api/reports/user/${user.id}`).then(r => r.json()).then(setReportsList);
+        }
       }
     }
   }, [activeView, user]);
@@ -71,6 +78,16 @@ function App() {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
+  };
+
+  const handleVerDetalle = (id) => {
+    fetch(`http://localhost:3000/api/reports/${id}/details`)
+      .then(r => r.json())
+      .then(data => {
+        setReportDetails(data);
+        setSelectedReportId(id);
+      })
+      .catch(error => console.error('Error fetching details:', error));
   };
 
   const exportarPDF = async () => {
@@ -181,7 +198,7 @@ function App() {
           });
 
           // 6. Descargar - con el nombre del folio
-          doc.save(`Reporte_Inventario_Folio_${folio}.pdf`);
+          doc.save(`${user.full_name}_ReporteInventario_${folio}.pdf`);
         } catch (error) {
           alert("Hubo un error al generar con logo: " + error.message);
         }
@@ -236,7 +253,7 @@ function App() {
             headStyles: { fillColor: [4, 30, 66] },
           });
 
-          doc.save(`Reporte_Inventario_Folio_${folio}.pdf`);
+          doc.save(`${user.full_name}_ReporteInv_${folio}.pdf`);
         } catch (error) {
           alert("Hubo un error al generar sin logo: " + error.message);
         }
@@ -378,7 +395,7 @@ function App() {
           </div>
           <div style={{ fontWeight: 'bold', backgroundColor: 'var(--fondo-crema)', padding: '8px 15px', borderRadius: '20px', border: '1px solid #d0d0d0', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span>👨‍⚕️ {user ? user.full_name : 'Usuario'}</span>
-            <button onClick={() => { setUser(null); setActiveView('login'); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }} title="Cerrar sesión">Salir</button>
+            <button onClick={() => { setUser(null); setActiveView('login'); setLoginForm({ codigo: '', pin: '' }); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }} title="Cerrar sesión">Salir</button>
           </div>
         </header>
         <main style={{ padding: '3rem', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
@@ -473,40 +490,71 @@ function App() {
           )}
 
           {activeView === 'reportes' && (
-            user && user.role === 'Admin' ? (
-              <>
-                <h2 style={{ color: 'var(--azul-oscuro)', marginBottom: '20px' }}>Historial de Reportes</h2>
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Folio</th>
-                        <th>Fecha y Hora</th>
-                        <th>Nombre</th>
-                        <th>Acción</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reportsList.map(rep => (
-                        <tr key={rep.id}>
-                          <td>#{rep.id}</td>
-                          <td>{new Date(rep.date_time + 'Z').toLocaleString()}</td>
-                          <td>{rep.full_name || 'Desconocido'}</td>
-                          <td><button style={{ padding: '5px 10px', backgroundColor: 'var(--azul-claro)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Pronto: Ver Detalle</button></td>
+            <>
+              {selectedReportId ? (
+                <div>
+                  <button onClick={() => setSelectedReportId(null)} style={{ marginBottom: '20px', padding: '10px 15px', backgroundColor: 'var(--azul-claro)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    ← Volver a los Reportes
+                  </button>
+                  <h2 style={{ color: 'var(--azul-oscuro)', marginBottom: '20px' }}>Detalles del Folio #{selectedReportId}</h2>
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>¿Estaba?</th>
+                          <th>Descripción</th>
+                          <th>No. Serie</th>
+                          <th>Estado</th>
+                          <th>Comentarios</th>
                         </tr>
-                      ))}
-                      {reportsList.length === 0 && <tr><td colSpan="4" style={{ textAlign: 'center' }}>No hay reportes generados.</td></tr>}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {reportDetails.map(det => (
+                          <tr key={det.id}>
+                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: det.is_present ? 'green' : 'red' }}>
+                              {det.is_present ? 'Sí' : 'No'}
+                            </td>
+                            <td>{det.description}</td>
+                            <td>{det.series_model || 'N/A'}</td>
+                            <td>{det.status}</td>
+                            <td>{det.comments || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', textAlign: 'center', marginTop: '40px' }}>
-                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🚧</div>
-                <h2 style={{ color: 'var(--azul-oscuro)', margin: 0, marginBottom: '10px' }}>Módulo de Reportes</h2>
-                <p style={{ color: 'gray', margin: 0 }}>Solo los administradores pueden ver el historial completo por ahora.</p>
-              </div>
-            )
+              ) : (
+                <>
+                  <h2 style={{ color: 'var(--azul-oscuro)', marginBottom: '20px' }}>
+                    {user && user.role === 'Admin' ? 'Historial de Reportes' : 'Mis Reportes'}
+                  </h2>
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Folio</th>
+                          <th>Fecha y Hora</th>
+                          {user && user.role === 'Admin' && <th>Nombre</th>}
+                          <th>Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportsList.map(rep => (
+                          <tr key={rep.id}>
+                            <td>#{rep.id}</td>
+                            <td>{new Date(rep.date_time + 'Z').toLocaleString()}</td>
+                            {user && user.role === 'Admin' && <td>{rep.full_name || 'Desconocido'}</td>}
+                            <td><button onClick={() => handleVerDetalle(rep.id)} style={{ padding: '5px 10px', backgroundColor: 'var(--azul-claro)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Ver Detalle</button></td>
+                          </tr>
+                        ))}
+                        {reportsList.length === 0 && <tr><td colSpan={user && user.role === 'Admin' ? "4" : "3"} style={{ textAlign: 'center' }}>No hay reportes generados.</td></tr>}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </>
           )}
 
           {activeView === 'admin_usuarios' && (
