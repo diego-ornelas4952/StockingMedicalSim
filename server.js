@@ -105,11 +105,11 @@ app.post('/api/reports', (req, res) => {
         const infoReport = stmtReport.run(id_user);
         const reportId = infoReport.lastInsertRowid;
 
-        const stmtDetail = db.prepare('INSERT INTO details (id_report, id_item, is_present, comments) VALUES (?, ?, ?, ?)');
+        const stmtDetail = db.prepare('INSERT INTO details (id_report, id_item, is_present, status, comments) VALUES (?, ?, ?, ?, ?)');
         
         const insertMany = db.transaction((itemsToInsert) => {
             for (const item of itemsToInsert) {
-                stmtDetail.run(reportId, item.id_item, item.is_present ? 1 : 0, item.comments || '');
+                stmtDetail.run(reportId, item.id_item, item.is_present ? 1 : 0, item.status || 'Disponible', item.comments || '');
             }
         });
 

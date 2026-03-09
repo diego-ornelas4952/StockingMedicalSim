@@ -81,6 +81,7 @@ function App() {
         items: stock.map(item => ({
           id_item: item.id,
           is_present: item.isChecked ? 1 : 0,
+          status: item.status || 'Disponible',
           comments: item.comments || ''
         }))
       };
@@ -151,17 +152,19 @@ function App() {
           doc.line(15, 62, 195, 62);
 
           // 4. Construimos las filas de la tabla
-          const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Estado", "Comentarios"];
+          const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Check", "Condición", "Comentarios"];
           const tableRows = [];
 
           stock.forEach(item => {
             const estadoFísico = item.isChecked ? "Encontrado" : "Falta";
             const resComentarios = item.comments ? item.comments : "-";
+            const cond = item.status || "Disponible";
             const itemData = [
               item.description || "",
               item.series_model || "N/A",
               item.quantity ? item.quantity.toString() : "0",
               estadoFísico,
+              cond,
               resComentarios
             ];
             tableRows.push(itemData);
@@ -208,16 +211,18 @@ function App() {
           doc.text(`Hora: ${formatoHora}`, 195, 57, { align: "right" });
           doc.line(15, 62, 195, 62);
 
-          const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Estado", "Comentarios"];
+          const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Check", "Condición", "Comentarios"];
           const tableRows = [];
           stock.forEach(item => {
             const estadoFísico = item.isChecked ? "Encontrado" : "Falta";
             const resComentarios = item.comments ? item.comments : "-";
+            const cond = item.status || "Disponible";
             tableRows.push([
               item.description || "",
               item.series_model || "N/A",
               item.quantity ? item.quantity.toString() : "0",
               estadoFísico,
+              cond,
               resComentarios
             ]);
           });
@@ -409,7 +414,7 @@ function App() {
 
                     <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📊</div>
-                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Historial Reportes</h3>
+                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Historial de Reportes</h3>
                     </div>
 
                   </div>
@@ -440,10 +445,11 @@ function App() {
                 <table>
                   <thead>
                     <tr>
-                      <th style={{ width: '10%', textAlign: 'center' }}>¿Está?</th>
-                      <th style={{ width: '45%' }}>Descripción</th>
+                      <th style={{ width: '5%', textAlign: 'center' }}>¿Está?</th>
+                      <th style={{ width: '35%' }}>Descripción</th>
                       <th style={{ width: '15%' }}>No. Serie</th>
-                      <th style={{ width: '40%' }}>Comentarios</th>
+                      <th style={{ width: '15%' }}>Estado</th>
+                      <th style={{ width: '30%' }}>Comentarios</th>
                     </tr>
                   </thead>
                   <tbody>

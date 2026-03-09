@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 export default function Items({ item, onUpdate }) {
     const isCheck = item.isChecked || false;
     const comments = item.comments || "";
+    const status = item.status || "Disponible";
 
     return (
         <motion.tr
@@ -22,6 +23,18 @@ export default function Items({ item, onUpdate }) {
             </td>
 
             <td>{item.series_model}</td>
+
+            <td>
+                <select 
+                    value={status} 
+                    onChange={(e) => onUpdate(item.id, 'status', e.target.value)}
+                    style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--azul-claro)', outline: 'none' }}
+                >
+                    <option value="Disponible">Disponible</option>
+                    <option value="Ocupado">Ocupado</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                </select>
+            </td>
 
             <td>
                 <input
