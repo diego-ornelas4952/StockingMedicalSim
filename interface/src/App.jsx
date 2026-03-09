@@ -380,7 +380,7 @@ function App() {
         </ul>
 
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--azul-medio)', fontSize: '0.8rem', textAlign: 'center', color: 'var(--azul-claro)' }}>
-          Versión 0.1
+          V1.0 Quorra
         </div>
       </nav>
 
