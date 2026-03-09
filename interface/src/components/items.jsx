@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 
-export default function Items({ item }) {
-    const [isCheck, setIsCheck] = useState(false);
+export default function Items({ item, onUpdate }) {
+    const isCheck = item.isChecked || false;
+    const comments = item.comments || "";
 
     return (
         <motion.tr
@@ -12,7 +12,7 @@ export default function Items({ item }) {
             <td style={{ textAlign: "center" }}>
                 <input type="checkbox" style={{ width: '20px', height: '20px', accentColor: 'var(--azul-oscuro)', cursor: 'pointer' }}
                     checked={isCheck}
-                    onChange={() => setIsCheck(!isCheck)} />
+                    onChange={(e) => onUpdate(item.id, 'isChecked', e.target.checked)} />
             </td>
 
             <td>
@@ -26,6 +26,8 @@ export default function Items({ item }) {
             <td>
                 <input
                     type="text"
+                    value={comments}
+                    onChange={(e) => onUpdate(item.id, 'comments', e.target.value)}
                     placeholder="Comentarios"
                     style={{
                         width: '90%',
