@@ -13,9 +13,29 @@ app.use(express.json());
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, 'interface/dist')));
 
-// Ensure that we create or load DB from the right user folder path when packaged, 
-// but for simplicity right now we will write to the app directory
-const db = new Database(path.join(__dirname, 'database.db'), { verbose: console.log });
+// Determine writable database path based on environment
+let dbPath;
+if (electronApp && typeof electronApp.getPath === 'function') {
+    dbPath = path.join(electronApp.getPath('userData'), 'database.db');
+    // Ensure the db exists at the writable location
+    if (!fs.existsSync(dbPath)) {
+        const packagedDbPath = path.join(__dirname, 'database.db');
+        if (fs.existsSync(packagedDbPath)) {
+            try {
+                // Buffer copy is safer for ASAR
+                fs.writeFileSync(dbPath, fs.readFileSync(packagedDbPath));
+            } catch(e) {
+                console.error("Failed to copy database:", e);
+                // Fallback explicitly to local if fails (though it might still be read-only in ASAR)
+                dbPath = packagedDbPath;
+            }
+        }
+    }
+} else {
+    dbPath = path.join(__dirname, 'database.db');
+}
+
+const db = new Database(dbPath, { verbose: console.log });
 
 app.get('/api/items', (req, res) => {
     try {
@@ -209,7 +229,7 @@ app.get('/api/details', (req, res) => {
 });
 
 // Fallback for React Router (if needed, though normally we only use API and default index)
-app.get('*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'interface', 'dist', 'index.html'));
 });
 

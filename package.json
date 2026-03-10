@@ -15,6 +15,11 @@
     "mac": {
       "category": "public.app-category.medical"
     },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
     "files": [
       "main.js",
       "server.js",
