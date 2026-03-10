@@ -19,6 +19,15 @@ function App() {
   const [reportDetails, setReportDetails] = useState([]);
   const [newUser, setNewUser] = useState({ id: '', full_name: '', pin: '', role: 'Servicio' });
   const [newItem, setNewItem] = useState({ description: '', series_model: '', quantity: 1, fixed_notes: '' });
+  
+  // Sistema de notificaciones (Toast) no bloqueante para evitar que alert() congele Electron
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage({ message, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
 
   useEffect(() => {
     fetch('http://localhost:3000/api/items')
@@ -52,9 +61,9 @@ function App() {
       if (data.success) {
         setNewUser({ id: '', full_name: '', pin: '', role: 'Servicio' });
         fetch('http://localhost:3000/api/users').then(r => r.json()).then(setUsersList);
-        alert('Usuario creado con éxito');
+        showToast('Usuario creado con éxito', 'success');
       } else {
-        alert('Error: ' + (data.message || 'No se pudo crear el usuario. Asegúrate de que el código no exista ya.'));
+        showToast('Error: ' + (data.message || 'No se pudo crear el usuario. Asegúrate de que el código no exista ya.'), 'error');
       }
     });
   };
@@ -68,7 +77,7 @@ function App() {
     }).then(() => {
       setNewItem({ description: '', series_model: '', quantity: 1, fixed_notes: '' });
       fetch('http://localhost:3000/api/items').then(r => r.json()).then(setStock);
-      alert('Inventario añadido con éxito');
+      showToast('Inventario añadido con éxito', 'success');
     });
   };
 
@@ -200,7 +209,7 @@ function App() {
           // 6. Descargar - con el nombre del folio
           doc.save(`${user.full_name}_ReporteInventario_${folio}.pdf`);
         } catch (error) {
-          alert("Hubo un error al generar con logo: " + error.message);
+          showToast("Hubo un error al generar con logo: " + error.message, 'error');
         }
       };
 
@@ -255,13 +264,13 @@ function App() {
 
           doc.save(`${user.full_name}_ReporteInv_${folio}.pdf`);
         } catch (error) {
-          alert("Hubo un error al generar sin logo: " + error.message);
+          showToast("Hubo un error al generar sin logo: " + error.message, 'error');
         }
       };
 
       img.src = '/udglogo.png';
     } catch (error) {
-      alert("Error al registrar el reporte en la base de datos: " + error.message);
+      showToast("Error al registrar el reporte en la base de datos: " + error.message, 'error');
     }
   };
 
@@ -365,7 +374,10 @@ function App() {
                 👥 Usuarios
               </li>
               <li onClick={() => setActiveView('admin_inventario')} style={{ cursor: 'pointer', padding: '12px 15px', borderRadius: '6px', transition: 'background 0.2s', backgroundColor: activeView === 'admin_inventario' ? 'var(--azul-medio)' : 'transparent', fontWeight: activeView === 'admin_inventario' ? 'bold' : 'normal' }} onMouseEnter={(e) => activeView !== 'admin_inventario' && (e.target.style.backgroundColor = 'rgba(255,255,255,0.1)')} onMouseLeave={(e) => activeView !== 'admin_inventario' && (e.target.style.backgroundColor = 'transparent')}>
-                📦 Inventario
+                📦 Añadir Equipos
+              </li>
+              <li onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', padding: '12px 15px', borderRadius: '6px', transition: 'background 0.2s', backgroundColor: activeView === 'inventario' ? 'var(--azul-medio)' : 'transparent', fontWeight: activeView === 'inventario' ? 'bold' : 'normal' }} onMouseEnter={(e) => activeView !== 'inventario' && (e.target.style.backgroundColor = 'rgba(255,255,255,0.1)')} onMouseLeave={(e) => activeView !== 'inventario' && (e.target.style.backgroundColor = 'transparent')}>
+                📋 Hacer Checklist
               </li>
             </>
           ) : (
@@ -427,6 +439,11 @@ function App() {
                     <div onClick={() => setActiveView('admin_inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📦</div>
                       <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Añadir Equipos</h3>
+                    </div>
+
+                    <div onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📋</div>
+                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Hacer Checklist</h3>
                     </div>
 
                     <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
@@ -650,6 +667,33 @@ function App() {
           )}
         </main>
       </div>
+
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '30px',
+          backgroundColor: toastMessage.type === 'error' ? '#FF4D4F' : '#4CAF50',
+          color: 'white',
+          padding: '15px 25px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          fontWeight: 'bold',
+          zIndex: 9999,
+          animation: 'fadeInOut 3.5s forwards'
+        }}>
+          {toastMessage.message}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(20px); }
+          10% { opacity: 1; transform: translateY(0); }
+          90% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(20px); }
+        }
+      `}</style>
     </div>
   );
 }
