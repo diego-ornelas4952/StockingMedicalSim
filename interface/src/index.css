@@ -51,7 +51,7 @@ header {
 
 main {
   padding: 2rem;
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -65,7 +65,7 @@ main {
 }
 
 .table-container {
-  max-height: 60vh;
+  max-height: 75vh;
   overflow-y: auto;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

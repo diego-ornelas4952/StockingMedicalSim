@@ -18,8 +18,8 @@ function App() {
   const [selectedReportId, setSelectedReportId] = useState(null);
   const [reportDetails, setReportDetails] = useState([]);
   const [newUser, setNewUser] = useState({ id: '', full_name: '', pin: '', role: 'Servicio' });
-  const [newItem, setNewItem] = useState({ description: '', series_model: '', quantity: 1, fixed_notes: '' });
-  
+  const [newItem, setNewItem] = useState({ description: '', series_model: '', quantity: 1, fixed_notes: '', status: 'Disponible' });
+
   // Sistema de notificaciones (Toast) no bloqueante para evitar que alert() congele Electron
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -75,7 +75,7 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newItem)
     }).then(() => {
-      setNewItem({ description: '', series_model: '', quantity: 1, fixed_notes: '' });
+      setNewItem({ description: '', series_model: '', quantity: 1, fixed_notes: '', status: 'Disponible' });
       fetch('http://localhost:3000/api/items').then(r => r.json()).then(setStock);
       showToast('Inventario añadido con éxito', 'success');
     });
@@ -87,6 +87,42 @@ function App() {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
+  };
+
+  const handleDeleteUser = (id) => {
+    if (user && user.role === 'Admin' && window.confirm('¿Estás seguro de que deseas eliminar este usuario permanentemente?')) {
+      fetch(`http://localhost:3000/api/users/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          fetch('http://localhost:3000/api/users').then(r => r.json()).then(setUsersList);
+          showToast('Usuario eliminado correctamente', 'success');
+        } else {
+          showToast('Error al eliminar usuario', 'error');
+        }
+      })
+      .catch(error => showToast('Error de conexión', 'error'));
+    }
+  };
+
+  const handleDeleteItem = (id) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este equipo del catálogo?')) {
+      fetch(`http://localhost:3000/api/items/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          fetch('http://localhost:3000/api/items').then(r => r.json()).then(setStock);
+          showToast('Equipo eliminado correctamente', 'success');
+        } else {
+          showToast('Error al eliminar equipo', 'error');
+        }
+      })
+      .catch(error => showToast('Error de conexión', 'error'));
+    }
   };
 
   const handleVerDetalle = (id) => {
@@ -120,7 +156,7 @@ function App() {
       const respData = await response.json();
       const folio = respData.success ? respData.folio : "N/A";
 
-      const doc = new jsPDF();
+      const doc = new jsPDF('landscape');
 
       // ----------------------------------------------------
       // METADATOS DEL USUARIO (Sacados del Login)
@@ -158,7 +194,7 @@ function App() {
           // 3. Título del Reporte
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          doc.text("REPORTE DE INVENTARIO", 105, 42, { align: "center" });
+          doc.text("REPORTE DE INVENTARIO", 148.5, 42, { align: "center" });
 
           // -- Sección de Metadatos del Usuario --
           doc.setFontSize(9);
@@ -169,13 +205,13 @@ function App() {
           doc.text(`Código: ${userInfo.id}`, 15, 57);
 
           // Bloque Derecho (Folio, Fecha y Hora)
-          doc.text(`Folio: #${folio}`, 195, 47, { align: "right" });
-          doc.text(`Fecha: ${formatoFecha}`, 195, 52, { align: "right" });
-          doc.text(`Hora: ${formatoHora}`, 195, 57, { align: "right" });
+          doc.text(`Folio: #${folio}`, 282, 47, { align: "right" });
+          doc.text(`Fecha: ${formatoFecha}`, 282, 52, { align: "right" });
+          doc.text(`Hora: ${formatoHora}`, 282, 57, { align: "right" });
 
           // Línea divisoria
           doc.setLineWidth(0.5);
-          doc.line(15, 62, 195, 62);
+          doc.line(15, 62, 282, 62);
 
           // 4. Construimos las filas de la tabla
           const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Check", "Condición", "Comentarios"];
@@ -225,17 +261,17 @@ function App() {
 
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          doc.text("REPORTE DE INVENTARIO", 105, 42, { align: "center" });
+          doc.text("REPORTE DE INVENTARIO", 148.5, 42, { align: "center" });
 
           // -- Sección de Metadatos del Usuario (Sin logo) --
           doc.setFontSize(9);
           doc.setFont("helvetica", "normal");
           doc.text(`Nombre: ${userInfo.full_name}`, 15, 52);
           doc.text(`Código: ${userInfo.id}`, 15, 57);
-          doc.text(`Folio: #${folio}`, 195, 47, { align: "right" });
-          doc.text(`Fecha: ${formatoFecha}`, 195, 52, { align: "right" });
-          doc.text(`Hora: ${formatoHora}`, 195, 57, { align: "right" });
-          doc.line(15, 62, 195, 62);
+          doc.text(`Folio: #${folio}`, 282, 47, { align: "right" });
+          doc.text(`Fecha: ${formatoFecha}`, 282, 52, { align: "right" });
+          doc.text(`Hora: ${formatoHora}`, 282, 57, { align: "right" });
+          doc.line(15, 62, 282, 62);
 
           const tableColumn = ["Descripción", "No. Serie", "Cantidad", "Check", "Condición", "Comentarios"];
           const tableRows = [];
@@ -374,10 +410,10 @@ function App() {
                 👥 Usuarios
               </li>
               <li onClick={() => setActiveView('admin_inventario')} style={{ cursor: 'pointer', padding: '12px 15px', borderRadius: '6px', transition: 'background 0.2s', backgroundColor: activeView === 'admin_inventario' ? 'var(--azul-medio)' : 'transparent', fontWeight: activeView === 'admin_inventario' ? 'bold' : 'normal' }} onMouseEnter={(e) => activeView !== 'admin_inventario' && (e.target.style.backgroundColor = 'rgba(255,255,255,0.1)')} onMouseLeave={(e) => activeView !== 'admin_inventario' && (e.target.style.backgroundColor = 'transparent')}>
-                📦 Añadir Equipos
+                📦 Equipo
               </li>
               <li onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', padding: '12px 15px', borderRadius: '6px', transition: 'background 0.2s', backgroundColor: activeView === 'inventario' ? 'var(--azul-medio)' : 'transparent', fontWeight: activeView === 'inventario' ? 'bold' : 'normal' }} onMouseEnter={(e) => activeView !== 'inventario' && (e.target.style.backgroundColor = 'rgba(255,255,255,0.1)')} onMouseLeave={(e) => activeView !== 'inventario' && (e.target.style.backgroundColor = 'transparent')}>
-                📋 Hacer Checklist
+                📋 Checklist
               </li>
             </>
           ) : (
@@ -392,7 +428,7 @@ function App() {
         </ul>
 
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--azul-medio)', fontSize: '0.8rem', textAlign: 'center', color: 'var(--azul-claro)' }}>
-          V1.0 Quorra
+          V1.1 Quorra
         </div>
       </nav>
 
@@ -410,7 +446,7 @@ function App() {
             <button onClick={() => { setUser(null); setActiveView('login'); setLoginForm({ codigo: '', pin: '' }); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }} title="Cerrar sesión">Salir</button>
           </div>
         </header>
-        <main style={{ padding: '3rem', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <main style={{ padding: '3rem', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
           {activeView === 'inicio' && (
             <div style={{
               textAlign: 'center',
@@ -429,24 +465,24 @@ function App() {
               {user && user.role === 'Admin' ? (
                 <>
                   <p style={{ marginBottom: '30px', fontWeight: 'bold', color: 'var(--azul-oscuro)' }}>Panel de Administración Principal</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 260px)', gap: '25px', justifyContent: 'center', margin: '0 auto' }}>
 
-                    <div onClick={() => setActiveView('admin_usuarios')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                    <div onClick={() => setActiveView('admin_usuarios')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>👥</div>
-                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Gestión de Usuarios</h3>
+                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Usuarios</h3>
                     </div>
 
-                    <div onClick={() => setActiveView('admin_inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                    <div onClick={() => setActiveView('admin_inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📦</div>
-                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Añadir Equipos</h3>
+                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Equipos</h3>
                     </div>
 
-                    <div onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                    <div onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📋</div>
-                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Hacer Checklist</h3>
+                      <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Checklist</h3>
                     </div>
 
-                    <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                    <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                       <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📊</div>
                       <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Historial de Reportes</h3>
                     </div>
@@ -454,13 +490,13 @@ function App() {
                   </div>
                 </>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
-                  <div onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 260px)', gap: '25px', justifyContent: 'center', margin: '0 auto' }}>
+                  <div onClick={() => setActiveView('inventario')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                     <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📋</div>
                     <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Inventarios</h3>
                   </div>
 
-                  <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '200px', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  <div onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', backgroundColor: 'var(--fondo-crema)', padding: '30px', borderRadius: '10px', border: '1px solid #e0e0e0', width: '100%', boxSizing: 'border-box', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                     <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📊</div>
                     <h3 style={{ margin: 0, color: 'var(--azul-oscuro)' }}>Mis Reportes</h3>
                   </div>
@@ -531,7 +567,7 @@ function App() {
                             <td style={{ textAlign: 'center', fontWeight: 'bold', color: det.is_present ? 'green' : 'red' }}>
                               {det.is_present ? 'Sí' : 'No'}
                             </td>
-                            <td>{det.description}</td>
+                            <td>{det.description || 'Equipo Eliminado'}</td>
                             <td>{det.series_model || 'N/A'}</td>
                             <td>{det.status}</td>
                             <td>{det.comments || '-'}</td>
@@ -598,6 +634,7 @@ function App() {
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Rol</th>
+                        <th>Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -606,6 +643,13 @@ function App() {
                           <td>{u.id}</td>
                           <td>{u.full_name}</td>
                           <td>{u.role}</td>
+                          <td>
+                            {user && user.role === 'Admin' && u.id !== user.id && (
+                                <button onClick={() => handleDeleteUser(u.id)} style={{ padding: '6px 10px', backgroundColor: '#FF4D4F', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Eliminar Usuario">
+                                  🗑️
+                                </button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -638,6 +682,14 @@ function App() {
                       <label style={{ display: 'block', fontSize: '0.9rem', color: 'gray', marginBottom: '5px' }}>Notas Fijas (opcional):</label>
                       <input type="text" value={newItem.fixed_notes} onChange={e => setNewItem({ ...newItem, fixed_notes: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
                     </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.9rem', color: 'gray', marginBottom: '5px' }}>Estado/Status Inicial:</label>
+                      <select value={newItem.status} onChange={e => setNewItem({ ...newItem, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}>
+                        <option value="Disponible">Disponible</option>
+                        <option value="Ocupado">Ocupado</option>
+                        <option value="Mantenimiento">Mantenimiento</option>
+                      </select>
+                    </div>
                     <button type="submit" style={{ padding: '12px', backgroundColor: 'var(--azul-oscuro)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginTop: '10px' }}>Agregar Equipo</button>
                   </form>
                 </div>
@@ -648,7 +700,9 @@ function App() {
                       <tr>
                         <th>Descripción</th>
                         <th>No. Serie</th>
+                        <th>Estado</th>
                         <th>Cantidad</th>
+                        <th>Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -656,7 +710,13 @@ function App() {
                         <tr key={item.id}>
                           <td>{item.description}</td>
                           <td>{item.series_model || 'N/A'}</td>
+                          <td>{item.status || 'Disponible'}</td>
                           <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                          <td>
+                            <button onClick={() => handleDeleteItem(item.id)} style={{ padding: '6px 10px', backgroundColor: '#FF4D4F', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }} title="Eliminar Equipo">
+                                🗑️
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -685,7 +745,7 @@ function App() {
           {toastMessage.message}
         </div>
       )}
-      
+
       <style>{`
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(20px); }

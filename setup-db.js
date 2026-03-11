@@ -16,7 +16,8 @@ db.exec(`
       description TEXT NOT NULL,
       series_model TEXT,
       quantity INTEGER DEFAULT 1,
-      fixed_notes TEXT
+      fixed_notes TEXT,
+      status TEXT DEFAULT 'Disponible'
   );
 
   -- Table that records each time someone does a checklist

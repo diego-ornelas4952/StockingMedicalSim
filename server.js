@@ -48,10 +48,10 @@ app.get('/api/items', (req, res) => {
 });
 
 app.post('/api/items', (req, res) => {
-    const { description, series_model, quantity, fixed_notes } = req.body;
+    const { description, series_model, quantity, fixed_notes, status } = req.body;
     try {
-        const stmt = db.prepare('INSERT INTO items (description, series_model, quantity, fixed_notes) VALUES (?, ?, ?, ?)');
-        const info = stmt.run(description, series_model || '', quantity || 1, fixed_notes || '');
+        const stmt = db.prepare('INSERT INTO items (description, series_model, quantity, fixed_notes, status) VALUES (?, ?, ?, ?, ?)');
+        const info = stmt.run(description, series_model || '', quantity || 1, fixed_notes || '', status || 'Disponible');
         res.json({ success: true, id: info.lastInsertRowid });
     } catch (error) {
         console.error('Error adding item:', error);
@@ -94,6 +94,32 @@ app.post('/api/users', async (req, res) => {
         } else {
             res.status(500).json({ error: error.message });
         }
+    }
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    try {
+        // Desvincular usuario de los reportes generados previos
+        db.prepare('UPDATE reports SET id_user = NULL WHERE id_user = ?').run(req.params.id);
+        // Borrar el usuario
+        db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/items/:id', (req, res) => {
+    try {
+        // Desvincular el item eliminado del historial en detalles de reporte
+        db.prepare('UPDATE details SET id_item = NULL WHERE id_item = ?').run(req.params.id);
+        // Borrar el equipo
+        db.prepare('DELETE FROM items WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -208,7 +234,7 @@ app.get('/api/reports/:id/details', (req, res) => {
         const details = db.prepare(`
             SELECT d.*, i.description, i.series_model 
             FROM details d
-            JOIN items i ON d.id_item = i.id
+            LEFT JOIN items i ON d.id_item = i.id
             WHERE d.id_report = ?
         `).all(req.params.id);
         res.json(details);
