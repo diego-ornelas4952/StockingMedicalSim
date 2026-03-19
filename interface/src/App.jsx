@@ -240,6 +240,13 @@ function App() {
             theme: 'grid',
             styles: { fontSize: 9, cellPadding: 3 },
             headStyles: { fillColor: [4, 30, 66] }, // Azul oscuro
+            didParseCell: function(data) {
+              if (data.section === 'body' && data.column.index === 3 && data.cell.raw === 'Falta') {
+                data.cell.styles.fillColor = [255, 230, 230]; // Fondo rojo claro
+                data.cell.styles.textColor = [220, 0, 0];     // Texto rojo oscuro
+                data.cell.styles.fontStyle = 'bold';
+              }
+            }
           });
 
           // 6. Descargar - con el nombre del folio
@@ -296,6 +303,13 @@ function App() {
             theme: 'grid',
             styles: { fontSize: 9, cellPadding: 3 },
             headStyles: { fillColor: [4, 30, 66] },
+            didParseCell: function(data) {
+              if (data.section === 'body' && data.column.index === 3 && data.cell.raw === 'Falta') {
+                data.cell.styles.fillColor = [255, 230, 230];
+                data.cell.styles.textColor = [220, 0, 0];
+                data.cell.styles.fontStyle = 'bold';
+              }
+            }
           });
 
           doc.save(`${user.full_name}_ReporteInv_${folio}.pdf`);
